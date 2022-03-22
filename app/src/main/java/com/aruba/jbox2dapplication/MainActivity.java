@@ -14,8 +14,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.text.NumberFormat;
-
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
     private SensorManager sensorManager;
     private Sensor defaultSensor;
@@ -45,12 +43,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onClick(View v) {
                 if(index<imgs.length){
-                    FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT,
-                            FrameLayout.LayoutParams.WRAP_CONTENT);
-                    layoutParams.gravity = Gravity.CENTER_HORIZONTAL;
+//                    FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT,
+//                            FrameLayout.LayoutParams.WRAP_CONTENT);
+//                    layoutParams.gravity = Gravity.CENTER_HORIZONTAL;
                     ImageView imageView = new ImageView(MainActivity.this);
                     imageView.setImageResource(imgs[index++]);
-                    collisionView.addView(imageView, layoutParams);
+                    collisionView.addBall(imageView);
                 }
             }
         });
@@ -58,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         delBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                collisionView.deleteView(0);
+                collisionView.removeBall(0);
             }
         });
 //        initView();
@@ -93,7 +91,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-
             float x = event.values[0];
             float y = event.values[1] * 2.0f;
             collisionView.onSensorChanged(-x, y);
