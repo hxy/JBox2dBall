@@ -5,15 +5,16 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.OrientationEventListener;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
@@ -22,10 +23,11 @@ import org.jbox2d.dynamics.Body;
 /**
  * 碰撞view
  */
-public class CollisionView extends FrameLayout {
+public class CollisionView extends FrameLayout implements SensorEventListener {
     private CollisionPresenter collisionPresenter;
-    private int currentOrientation = 0;
-    private CollisionOrientationListener orientationListener;
+    private float currentOrientation = 0;
+    private SensorManager sensorManager;
+    private Sensor defaultSensor;
 
     public CollisionView(@NonNull Context context) {
         this(context, null);
@@ -39,7 +41,8 @@ public class CollisionView extends FrameLayout {
         super(context, attrs, defStyleAttr);
         //开启ondraw方法回调
         setWillNotDraw(false);
-        orientationListener = new CollisionOrientationListener(context);
+        sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        defaultSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         collisionPresenter = new CollisionPresenter();
         collisionPresenter.setDensity(getResources().getDisplayMetrics().density);
     }
@@ -92,7 +95,7 @@ public class CollisionView extends FrameLayout {
         FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT,
                 FrameLayout.LayoutParams.WRAP_CONTENT);
         layoutParams.gravity = Gravity.CENTER_HORIZONTAL;
-        if(currentOrientation == 180){
+        if(currentOrientation < 0){
             //如果当前手机
             layoutParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
         }
@@ -138,38 +141,30 @@ public class CollisionView extends FrameLayout {
     }
 
 
-
-
-    private class CollisionOrientationListener extends OrientationEventListener {
-
-        public CollisionOrientationListener(Context context) {
-            super(context);
-        }
-
-        public CollisionOrientationListener(Context context, int rate) {
-            super(context, rate);
-        }
-
-        @Override
-        public void onOrientationChanged(int orientation) {
-            if(orientation == OrientationEventListener.ORIENTATION_UNKNOWN){return;}
-            int newOrientation = ((orientation+45)/90*90)%360;
-            if(currentOrientation!=newOrientation){
-                currentOrientation = newOrientation;
-            }
-        }
-    }
-
-
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        if(orientationListener.canDetectOrientation()){orientationListener.enable();}
+        sensorManager.registerListener(this, defaultSensor, SensorManager.SENSOR_DELAY_GAME);
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        orientationListener.disable();
+        sensorManager.unregisterListener(this);
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            float x = event.values[0];
+            float y = event.values[1] * 2.0f;
+            onSensorChanged(-x, y);
+            currentOrientation = y;
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
     }
 }
