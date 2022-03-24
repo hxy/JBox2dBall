@@ -1,12 +1,9 @@
 package com.aruba.jbox2dapplication;
 
-import android.util.Log;
 import android.view.View;
 
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
-
-import java.text.NumberFormat;
 
 /**
  * Presenter层

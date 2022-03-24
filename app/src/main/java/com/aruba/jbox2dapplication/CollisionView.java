@@ -12,7 +12,6 @@ import android.hardware.SensorManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -56,7 +55,6 @@ public class CollisionView extends FrameLayout implements SensorEventListener {
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        Log.d("yue.huang","onLayoutonLayoutonLayout");
         if (changed) {
             //子viwe设置body
             int childCount = getChildCount();
@@ -96,7 +94,7 @@ public class CollisionView extends FrameLayout implements SensorEventListener {
                 FrameLayout.LayoutParams.WRAP_CONTENT);
         layoutParams.gravity = Gravity.CENTER_HORIZONTAL;
         if(currentOrientation < 0){
-            //如果当前手机
+            //如果当前手机头朝下，则从底部生成小球
             layoutParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
         }
         addView(view,layoutParams);
@@ -108,6 +106,10 @@ public class CollisionView extends FrameLayout implements SensorEventListener {
         });
     }
 
+    /**
+     * 删除小球
+     * @param index
+     */
     public void removeBall(int index){
         final View child = getChildAt(index);
         Animator scaleX = ObjectAnimator.ofFloat(child,"scaleX",1,0);
@@ -123,6 +125,7 @@ public class CollisionView extends FrameLayout implements SensorEventListener {
 
             @Override
             public void onAnimationEnd(Animator animation) {
+                //动画结束后删除view和刚体
                 collisionPresenter.destroyBody((Body) child.getTag(R.id.view_body_tag));
                 removeView(child);
             }
@@ -144,12 +147,14 @@ public class CollisionView extends FrameLayout implements SensorEventListener {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+        //注册传感器监听
         sensorManager.registerListener(this, defaultSensor, SensorManager.SENSOR_DELAY_GAME);
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
+        //取消传感器监听
         sensorManager.unregisterListener(this);
     }
 
